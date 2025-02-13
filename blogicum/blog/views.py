@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from django.db.models import Q
+from django.db.models import Count, Q
 
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView, View
@@ -64,9 +64,7 @@ class CommentCreateView(LoginRequiredMixin, CommentMixin, CreateView):
         form.instance.author = self.request.user
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         form.instance.post = post
-        post.comment_count += 1
 
-        post.save()
         return super().form_valid(form)
 
 
@@ -99,7 +97,7 @@ class ProfileListView(PaginateMixin, ListView):
             author__exact=self.get_profile()
         ).filter(
             Q(is_published__exact=True) | Q(author__exact=user)
-        )
+        ).annotate(comment_count=Count("comment"))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -116,7 +114,7 @@ class IndexListView(PaginateMixin, ListView):
             is_published__exact=True,
             pub_date__date__lte=timezone.now(),
             category__is_published__exact=True
-        )
+        ).annotate(comment_count=Count("comment"))
 
 
 class CategoryListView(PaginateMixin, ListView):
@@ -134,7 +132,7 @@ class CategoryListView(PaginateMixin, ListView):
             is_published__exact=True,
             pub_date__date__lte=timezone.now(),
             category__slug__exact=self.kwargs['category_slug']
-        )
+        ).annotate(comment_count=Count("comment"))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

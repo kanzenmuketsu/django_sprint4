@@ -91,12 +91,6 @@ class Post(BasemodelClass, models.Model):
         blank=True,
         upload_to='post_images'
     )
-    comment_count = models.IntegerField(
-        verbose_name='Количество комментариев',
-        null=False,
-        blank=False,
-        default=0
-    )
 
     class Meta:
         verbose_name = 'публикация'
